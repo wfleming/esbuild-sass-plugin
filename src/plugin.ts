@@ -67,11 +67,11 @@ export function sassPlugin(options: SassPluginOptions = {}): Plugin {
         }))
       }
 
-      const renderSync = createRenderer(options, options.sourceMap ?? sourcemap)
+      const renderAsync = createRenderer(options, options.sourceMap ?? sourcemap)
 
       onLoad({filter: options.filter ?? DEFAULT_FILTER}, useCache(options, async path => {
         try {
-          let {cssText, watchFiles, warnings} = renderSync(path)
+          let {cssText, watchFiles, warnings} = await renderAsync(path)
           if (!warnings) {
             warnings = []
           }
