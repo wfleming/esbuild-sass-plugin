@@ -2,8 +2,8 @@ import {dirname, parse, relative, resolve, sep} from 'path'
 import fs from "node:fs/promises"
 import {createResolver, fileSyntax, sourceMappingURL} from './utils'
 import {PartialMessage} from 'esbuild'
-import * as sass from 'sass'
-import {ImporterResult} from 'sass'
+import * as sass from 'sass-embedded'
+import {ImporterResult} from 'sass-embedded'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {SassPluginOptions} from './index'
 

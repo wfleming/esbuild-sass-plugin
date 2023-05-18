@@ -1,5 +1,5 @@
 import {OnLoadResult} from 'esbuild'
-import {StringOptions} from 'sass'
+import {StringOptions} from 'sass-embedded'
 import {sassPlugin} from './plugin'
 
 export type Type = 'css' | 'style' | 'css-text' | 'lit-css'
