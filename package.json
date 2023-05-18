@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "resolve": "^1.22.2",
-    "sass": "^1.62.0"
+    "sass-embedded": "^1.62.0"
   },
   "devDependencies": {
     "@types/node": "^18.15.12",
