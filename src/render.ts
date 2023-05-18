@@ -1,5 +1,5 @@
 import {dirname, parse, relative, resolve, sep} from 'path'
-import fs, {readFileSync} from 'fs'
+import fs from "node:fs/promises"
 import {createResolver, fileSyntax, sourceMappingURL} from './utils'
 import {PartialMessage} from 'esbuild'
 import * as sass from 'sass'
@@ -7,7 +7,7 @@ import {ImporterResult} from 'sass'
 import {fileURLToPath, pathToFileURL} from 'url'
 import {SassPluginOptions} from './index'
 
-export type RenderSync = (path: string) => RenderResult
+export type RenderSync = (path: string) => Promise<RenderResult>
 
 export type RenderResult = {
   cssText: string
@@ -20,36 +20,45 @@ export function createRenderer(options: SassPluginOptions = {}, sourcemap: boole
   const loadPaths = options.loadPaths!
   const resolveModule = createResolver(options, loadPaths)
 
+  async function fsExists(path) {
+    try {
+      await fs.stat(path)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   /**
    * NOTE: we're deliberately ignoring sass recommendation to avoid sacrificing speed here!
    * - we prefer fragment attempt over syntax attempt
    * - we prefer .scss and .css over .sass
    * - we don't throw exceptions if the URL is ambiguous
    */
-  function resolveImport(pathname: string, ext?: string): string | null {
+  async function resolveImport(pathname: string, ext?: string): Promise<string | null> {
     if (ext) {
       let filename = pathname + ext
-      if (fs.existsSync(filename)) {
+      if (await fsExists(filename)) {
         return filename
       }
       const index = filename.lastIndexOf(sep)
       filename = index >= 0 ? filename.slice(0, index) + sep + '_' + filename.slice(index + 1) : '_' + filename
-      if (fs.existsSync(filename)) {
+      if (await fsExists(filename)) {
         return filename
       }
       return null
     } else {
-      if (!fs.existsSync(dirname(pathname))) {
+      if (!await fsExists(dirname(pathname))) {
         return null
       }
-      return resolveImport(pathname, '.scss')
-        || resolveImport(pathname, '.css')
-        || resolveImport(pathname, '.sass')
-        || resolveImport(pathname + sep + 'index')
+      return await resolveImport(pathname, '.scss')
+        || await resolveImport(pathname, '.css')
+        || await resolveImport(pathname, '.sass')
+        || await resolveImport(pathname + sep + 'index')
     }
   }
 
-  function resolveRelativeImport(loadPath: string, filename: string): string | null {
+  async function resolveRelativeImport(loadPath: string, filename: string): Promise<string | null> {
     const absolute = resolve(loadPath, filename)
     const pathParts = parse(absolute)
     if (pathParts.ext) {
@@ -64,18 +73,18 @@ export function createRenderer(options: SassPluginOptions = {}, sourcemap: boole
   /**
    * renderSync
    */
-  return function (path: string): RenderResult {
+  return async function (path: string): Promise<RenderResult> {
 
     const basedir = dirname(path)
 
-    let source = fs.readFileSync(path, 'utf-8')
+    let source = await fs.readFile(path, 'utf-8')
     if (options.precompile) {
       source = options.precompile(source, path, true)
     }
 
     const syntax = fileSyntax(path)
     if (syntax === 'css') {
-      return {cssText: readFileSync(path, 'utf-8'), watchFiles: [path]}
+      return {cssText: await fs.readFile(path, 'utf-8'), watchFiles: [path]}
     }
 
     if (options.quietDeps) {
@@ -112,15 +121,15 @@ export function createRenderer(options: SassPluginOptions = {}, sourcemap: boole
       css,
       loadedUrls,
       sourceMap
-    } = sass.compileString(source, {
+    } = await sass.compileStringAsync(source, {
       sourceMapIncludeSources: true,
       ...options,
       logger,
       syntax,
       importer: {
-        load(canonicalUrl: URL): ImporterResult | null {
+        async load(canonicalUrl: URL): Promise<ImporterResult | null> {
           const pathname = fileURLToPath(canonicalUrl)
-          let contents = fs.readFileSync(pathname, 'utf8')
+          let contents = await fs.readFile(pathname, 'utf8')
           if (options.precompile) {
             contents = options.precompile(contents, pathname, false)
           }
@@ -130,7 +139,7 @@ export function createRenderer(options: SassPluginOptions = {}, sourcemap: boole
             sourceMapUrl: sourcemap ? canonicalUrl : undefined
           }
         },
-        canonicalize(url: string): URL | null {
+        async canonicalize(url: string): Promise<URL | null> {
           let filename: string
           if (url.startsWith('~')) {
             filename = resolveModule(decodeURI(url.slice(1)), basedir)
@@ -148,12 +157,12 @@ export function createRenderer(options: SassPluginOptions = {}, sourcemap: boole
           if (options.importMapper) {
             filename = options.importMapper(filename)
           }
-          let resolved = resolveRelativeImport(basedir, filename)
+          let resolved = await resolveRelativeImport(basedir, filename)
           if (resolved) {
             return pathToFileURL(resolved)
           }
           for (const loadPath of loadPaths) {
-            resolved = resolveRelativeImport(loadPath, filename)
+            resolved = await resolveRelativeImport(loadPath, filename)
             if (resolved) {
               return pathToFileURL(resolved)
             }
