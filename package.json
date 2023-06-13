@@ -1,6 +1,6 @@
 {
-  "name": "esbuild-sass-plugin",
-  "version": "2.9.0",
+  "name": "@wfleming/esbuild-sass-plugin-async",
+  "version": "2.10.0",
   "description": "esbuild plugin for sass/scss files supporting both css loader and css result import (lit-element)",
   "main": "lib/index.js",
   "keywords": [
@@ -17,15 +17,15 @@
     "LICENSE",
     "README.MD"
   ],
-  "author": "Gianluca Romeo <glromeo@gmail.com> (https://github.com/glromeo/esbuild-sass-plugin)",
+  "author": "Will Fleming <will@flemi.ng> (https://github.com/wfleming/esbuild-sass-plugin)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/glromeo/esbuild-sass-plugin/issues"
+    "url": "https://github.com/wfleming/esbuild-sass-plugin/issues"
   },
-  "homepage": "https://github.com/glromeo/esbuild-sass-plugin#readme",
+  "homepage": "https://github.com/wfleming/esbuild-sass-plugin#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/glromeo/esbuild-sass-plugin.git"
+    "url": "https://github.com/wfleming/esbuild-sass-plugin.git"
   },
   "scripts": {
     "setup": "cd test/fixture && yarn install && cd ../issues && yarn install && cd ../..",
