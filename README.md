@@ -3,7 +3,11 @@
 
 [![Build Status][travis-image]][travis-url]
 
-A plugin for [esbuild](https://esbuild.github.io/) to handle Sass & SCSS files.
+A plugin for [esbuild](https://esbuild.github.io/) to handle Sass & SCSS files. This is a fork of
+[esbuild-sass-plugin](https://github.com/glromeo/esbuild-sass-plugin) that uses
+[sass-embedded](https://www.npmjs.com/package/sass-embedded)'s async renderer instead of
+[sass](https://www.npmjs.com/package/sass). The advantage is considerably faster compilation if you
+have many sass entrypoints/bundles, the downside is it's not compatible with musl libc.
 
 ### Features
 * **PostCSS** & **CSS modules**
@@ -13,19 +17,10 @@ A plugin for [esbuild](https://esbuild.github.io/) to handle Sass & SCSS files.
 * **url rewriting**
 * pre-compiling (to add **global resources** to the sass files)
 
-### Breaking Changes
-* `type` has been simplified and now accepts only a string. If you need different types in a project [you can use more
-  than one instance](https://github.com/glromeo/esbuild-sass-plugin/issues/60) of the plugin. 
-  You can have a look at the [**multiple** fixture](https://github.com/glromeo/esbuild-sass-plugin/blob/main/test/fixture/multiple) 
-  for an example where **lit CSS** and **CSS modules** are both used in the same app
-* The support for [node-sass](https://github.com/sass/node-sass) has been removed and for good.
-  Sadly, node-sass is at a dead end and so it's 1.x.
-* `transform` now is expected to send back the CSS text in contents and anything that has to be default exported in `pluginData`.
-
 ### Install
 
 ```console
-$ npm i esbuild-sass-plugin
+$ npm i @wfleming/esbuild-sass-plugin-async
 ```
 
 ### Usage
@@ -33,7 +28,7 @@ $ npm i esbuild-sass-plugin
 Just add it to your esbuild plugins:
 
 ```javascript
-import {sassPlugin} from 'esbuild-sass-plugin'
+import {sassPlugin} from '@wfleming/esbuild-sass-plugin-async'
 
 await esbuild.build({
   ...
@@ -61,18 +56,18 @@ The following are the options specific to the plugin with their defaults whether
 | prefer        | string                                | preferred package.json field            |
 | quietDeps     | boolean                               | false            |
 
-Two main options control the plugin: `filter` which has the same meaning of filter in [esbuild](https://esbuild.github.io/plugins/#on-load) 
-allowing to select the URLs handled by a plugin instance and then `type` that's what specifies how the css should be rendered and imported. 
+Two main options control the plugin: `filter` which has the same meaning of filter in [esbuild](https://esbuild.github.io/plugins/#on-load)
+allowing to select the URLs handled by a plugin instance and then `type` that's what specifies how the css should be rendered and imported.
 
 ### `filter`
 The default filter is quite simple but also quite permissive. When specifying a custom regex bear in mind that this
 is in [Go syntax](https://pkg.go.dev/regexp/syntax)
 
 > If you have URLs in your imports and you want the plugin to ignore them you can't just a filter expression like:
-`/^(?!https?:).*\.(s[ac]ss|css)$/` because *Go regex engine doesn't support lookarounds* but you can use 
+`/^(?!https?:).*\.(s[ac]ss|css)$/` because *Go regex engine doesn't support lookarounds* but you can use
 > **esbuild**'s `external` option to ignore these imports or try a [solution like this one](https://esbuild.github.io/plugins/#on-resolve).
 
-You can try to list multiple plugin instances in order so that the most specific RegEx come first: 
+You can try to list multiple plugin instances in order so that the most specific RegEx come first:
 ```javascript
 await esbuild.build({
   ...
@@ -85,24 +80,24 @@ await esbuild.build({
       filter: /\.scss$/
     }),
   ],
-  ...   
+  ...
 })
 ```
 
 ### `type`
 
-The example in [Usage](#usage) uses the default type `css` and will use esbuild CSS loader so your transpiled Sass 
+The example in [Usage](#usage) uses the default type `css` and will use esbuild CSS loader so your transpiled Sass
 will be in `index.css` alongside your bundle.
 
 In all other cases `esbuild` won't process the CSS content which instead will be handled by the plugin.
-> if you want `url()` resolution or other processing you have to use `postcss` like in [this example](https://github.com/glromeo/esbuild-sass-plugin/issues/92#issuecomment-1219209442) 
+> if you want `url()` resolution or other processing you have to use `postcss` like in [this example](https://github.com/glromeo/esbuild-sass-plugin/issues/92#issuecomment-1219209442)
 
-**NOTE:** Since version `2.7.0` the `css` type works also with postcss, CSS modules and more in general 
-with any transformation function by keeping an internal cache of CSS chunks (virtual CSS files) 
+**NOTE:** Since version `2.7.0` the `css` type works also with postcss, CSS modules and more in general
+with any transformation function by keeping an internal cache of CSS chunks (virtual CSS files)
 importing them in the module wrapping the contents
 
 #### `type: "style"`
-In this mode the stylesheet will be in the javascript bundle 
+In this mode the stylesheet will be in the javascript bundle
 and will be dynamically added to the page when the bundle is loaded.
 
 #### `type: "css-text"`
@@ -154,23 +149,23 @@ export default class HelloWorld extends LitElement {
 Look in `test/fixtures` folder for more usage examples.
 
 ### `cache`
-The cache is enabled by default and can be turned off with `cache: false`. 
-Each plugin instance creates and maintain its own cache (as a Map) and this cache lives for the duration of the build. 
-If you want to pass a Map to preserve the cache amongst subsequent builds bear in mind that sharing the very same cache 
-between different instances might work just fine or it might lead to issues if the contents are incompatible. 
+The cache is enabled by default and can be turned off with `cache: false`.
+Each plugin instance creates and maintain its own cache (as a Map) and this cache lives for the duration of the build.
+If you want to pass a Map to preserve the cache amongst subsequent builds bear in mind that sharing the very same cache
+between different instances might work just fine or it might lead to issues if the contents are incompatible.
 > If you are not sure of what to do just keep a separate Map for each plugin instance.
 
 ### `cssImports`
 when this is set to `true` the plugin rewrites the node-modules relative URLs startig with the `~` prefix so that
-esbuild can resolve them similarly to what `css-loader` does. 
-> Although this practice is [kind of deprecated nowadays](https://webpack.js.org/loaders/sass-loader/#resolving-import-at-rules) 
+esbuild can resolve them similarly to what `css-loader` does.
+> Although this practice is [kind of deprecated nowadays](https://webpack.js.org/loaders/sass-loader/#resolving-import-at-rules)
 > some packages out there still use this notation (e.g. `formio`)
 > \
 > so I added this feature to help in cases [like this one](https://github.com/glromeo/esbuild-sass-plugin/issues/74).
 
 ### `nonce`
-in presence of Content-Security-Policy 
-[(CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src) 
+in presence of Content-Security-Policy
+[(CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/style-src)
 the `nonce` option allows to specify the nonce attribute for the dynamically generated `<style>`
 
 If the `nonce` string is a field access starting with `window`, `process` or `globalThis` it is left in the code without quotes.
@@ -190,12 +185,12 @@ when this option is specified it allows to import npm packages which have `sass`
 
 > **NOTE**: This is an experimental feature
 > * it replaces the internal use of `require.resolve` with browserify `resolve.sync`
-> * it only applies to import prefixed by `~` 
+> * it only applies to import prefixed by `~`
 
 ### `importMapper`
 
 A function to customize/re-map the import path, both `import` statements in JavaScript/TypeScript code and `@import`
-in Sass/SCSS are covered.   
+in Sass/SCSS are covered.
 You can use this option to re-map import paths like tsconfig's `paths` option.
 
 e.g. given this `tsconfig.json` which maps image files paths
@@ -228,8 +223,8 @@ await esbuild.build({
 
 #### - Rewriting relative `url(...)`s
 If your sass reference resources with relative urls (see [#48](https://github.com/glromeo/esbuild-sass-plugin/issues/48))
-esbuild will struggle to rewrite those urls because it doesn't have idea of the imports that the Sass compiler 
-has gone through. Fortunately the new importer API allows to rewrite those relative URLs in absolute ones which 
+esbuild will struggle to rewrite those urls because it doesn't have idea of the imports that the Sass compiler
+has gone through. Fortunately the new importer API allows to rewrite those relative URLs in absolute ones which
 then esbuild will be able to handle.
 
 Here is an example of how to do the `url(...)` rewrite ([make sure to handle `\` in *Windows*](https://github.com/glromeo/esbuild-sass-plugin/issues/58))
@@ -285,7 +280,7 @@ await esbuild.build({
 
 ```typescript
 async (this: SassPluginOptions, css: string, resolveDir?: string) => Promise<string>
-``` 
+```
 
 It's a function which will be invoked before passing the css to esbuild or wrapping it in a module.\
 It can be used to do **PostCSS** processing and/or to create **modules** like in the following examples.
