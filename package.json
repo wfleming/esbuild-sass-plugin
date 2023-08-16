@@ -1,61 +1,61 @@
 {
-  "name": "@wfleming/esbuild-sass-plugin-async",
-  "version": "2.11.0",
-  "description": "esbuild plugin for sass/scss files supporting both css loader and css result import (lit-element)",
-  "main": "lib/index.js",
-  "keywords": [
-    "esbuild",
-    "plugin",
-    "sass",
-    "scss",
-    "css",
-    "postcss",
-    "css-modules"
-  ],
-  "files": [
-    "lib",
-    "LICENSE",
-    "README.MD"
-  ],
-  "author": "Will Fleming <will@flemi.ng> (https://github.com/wfleming/esbuild-sass-plugin)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/wfleming/esbuild-sass-plugin/issues"
-  },
-  "homepage": "https://github.com/wfleming/esbuild-sass-plugin#readme",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/wfleming/esbuild-sass-plugin.git"
-  },
-  "scripts": {
-    "setup": "cd test/fixture && yarn install && cd ../issues && yarn install && cd ../..",
-    "build": "tsc",
-    "build:watch": "tsc --watch",
-    "test": "c8 mocha test/**/*.test.ts",
-    "coverage": "c8 report --reporter=text-lcov | coveralls"
-  },
-  "mocha": {
-    "require": [
-      "ts-node/register"
-    ]
-  },
-  "dependencies": {
-    "resolve": "^1.22.2",
-    "sass-embedded": "^1.62.0"
-  },
-  "devDependencies": {
-    "@types/node": "^18.15.12",
-    "@types/resolve": "^1.20.2",
-    "esbuild": "^0.18.0",
-    "mocha-toolkit": "^1.0.7",
-    "postcss": "^8.4.23",
-    "postcss-modules": "^6.0.0",
-    "postcss-url": "^10.1.3",
-    "source-map": "^0.7.4",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.4"
-  },
-  "peerDependencies": {
-    "esbuild": ">=0.17.0 <0.19.0"
-  }
+	"name": "@wfleming/esbuild-sass-plugin-async",
+	"version": "2.12.0",
+	"description": "esbuild plugin for sass/scss files supporting both css loader and css result import (lit-element)",
+	"main": "lib/index.js",
+	"keywords": [
+		"esbuild",
+		"plugin",
+		"sass",
+		"scss",
+		"css",
+		"postcss",
+		"css-modules"
+	],
+	"files": [
+		"lib",
+		"LICENSE",
+		"README.MD"
+	],
+	"author": "Will Fleming <will@flemi.ng> (https://github.com/wfleming/esbuild-sass-plugin)",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/wfleming/esbuild-sass-plugin/issues"
+	},
+	"homepage": "https://github.com/wfleming/esbuild-sass-plugin#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/wfleming/esbuild-sass-plugin.git"
+	},
+	"scripts": {
+		"setup": "cd test/fixture && yarn install && cd ../issues && yarn install && cd ../..",
+		"build": "tsc",
+		"build:watch": "tsc --watch",
+		"test": "c8 mocha test/**/*.test.ts",
+		"coverage": "c8 report --reporter=text-lcov | coveralls"
+	},
+	"mocha": {
+		"require": [
+			"ts-node/register"
+		]
+	},
+	"dependencies": {
+		"resolve": "^1.22.2",
+		"sass-embedded": "^1.62.0"
+	},
+	"devDependencies": {
+		"@types/node": "^18.15.12",
+		"@types/resolve": "^1.20.2",
+		"esbuild": "^0.19.1",
+		"mocha-toolkit": "^1.0.7",
+		"postcss": "^8.4.23",
+		"postcss-modules": "^6.0.0",
+		"postcss-url": "^10.1.3",
+		"source-map": "^0.7.4",
+		"ts-node": "^10.9.1",
+		"typescript": "^5.0.4"
+	},
+	"peerDependencies": {
+		"esbuild": "^0.19.1"
+	}
 }
